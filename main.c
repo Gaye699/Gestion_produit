@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include "const.h"
+
 
 struct Produit {
     int code;
@@ -9,6 +11,57 @@ struct Produit {
     int quantiteStock;
     char derniereDateApprovisionnement[20];
 };
+struct Client {
+    char nom[50];
+    char email[50];
+    int tel[15];
+    char profession[50];
+    int pointsFidelite;
+};
+void saisirClient(struct Client *nouveauClient) {
+    printf("Entrez le nom du client : ");
+    scanf(" %[^\n]s", nouveauClient->nom);
+    printf("Entrez l'email du client : ");
+    scanf(" %s", nouveauClient->email);
+    printf("Entrez le tel du client: ");
+    scanf(" %d", nouveauClient->tel);
+    printf("Entrez la profession du client: ");
+    scanf(" %s", nouveauClient->profession);
+}
+
+void enregistrerClient(const struct Client *nouveauClient) {
+    // Code pour enregistrer le client dans un fichier ou une base de données
+    FILE *fichier;
+    fichier = fopen("client.txt", "a");
+    // Par exemple, vous pouvez ouvrir un fichier et y écrire les détails du client
+    if (fichier != NULL) {
+        fprintf(fichier, "%s %s %d %s %d\n", nouveauClient->nom, nouveauClient->email, nouveauClient->tel, nouveauClient->profession, nouveauClient->pointsFidelite);
+        fclose(fichier);
+        printf("Le client a ete enregistrer avec succes.");
+    }
+}
+void ajouterPointsFidelite(struct Client *client, int nombrePoints) {
+    client->pointsFidelite += nombrePoints;
+}
+
+void afficherPointsFidelite(const struct Client *client) {
+    printf("Le client a %d points de fidélité.\n", client->pointsFidelite);
+}
+/*void afficherClient(const struct Client *client){
+    int i,nbClient;
+    FILE *fichier = fopen("client.txt", "r");
+        if(fichier == NULL){
+            printf("Aucun client enregistrer!");
+        }
+
+
+        printf("Liste des client enregistrer\n");
+        printf("nom : %s\n", Client.nom);
+        printf("email : %.2f\n", Client.email);
+
+        }
+            fclose(fichier);
+        }*/
 
 // Fonction pour enregistrer un nouveau produit dans le fichier
 void enregistrerProduit(struct Produit *produit) {
@@ -18,7 +71,7 @@ void enregistrerProduit(struct Produit *produit) {
     if (fichier != NULL) {
         fprintf(fichier, "%d %s %.2f %.2f %d %s\n", produit->code, produit->designation, produit->prixAchat, produit->prixVente, produit->quantiteStock, produit->derniereDateApprovisionnement);
         fclose(fichier);
-        printf("Le produit a été enregistré avec succès.\n");
+        printf("Le produit a ete enregistre avec succes.\n");
     } else {
         printf("Erreur lors de l'ouverture du fichier.\n");
     }
@@ -34,16 +87,16 @@ void rechercherProduit(int codeRecherche) {
         int trouve = 0;
         while (fscanf(fichier, "%d %[^ ] %f %f %d %s\n", &produit.code, produit.designation, &produit.prixAchat, &produit.prixVente, &produit.quantiteStock, produit.derniereDateApprovisionnement) != EOF) {
             if (produit.code == codeRecherche) {
-                printf("Produit trouvé :\n");
+                printf("Produit trouve :\n");
 
                 printf("Code : %d\n", produit.code);
                 if(produit.quantiteStock > 10){
 
-                printf("Désignation : %s\n", produit.designation);
+                printf("Designation : %s\n", produit.designation);
                 printf("Prix d'achat : %.2f\n", produit.prixAchat);
                 printf("Prix de vente : %.2f\n", produit.prixVente);
-                printf("Quantité en stock : %d\n", produit.quantiteStock);
-                printf("Dernière date d'approvisionnement : %s\n", produit.derniereDateApprovisionnement);
+                printf("Quantite en stock : %d\n", produit.quantiteStock);
+                printf("Derniere date d'approvisionnement : %s\n", produit.derniereDateApprovisionnement);
                 trouve = 1;}else{
                 printf("\033[1;31m");
                  printf("Code : %d, Designation : %s, Prix de vente : %.2f, Quantite en stock : %d\n", produit.code, produit.designation, produit.prixVente, produit.quantiteStock);
@@ -53,7 +106,7 @@ void rechercherProduit(int codeRecherche) {
             }
         }
         if (!trouve) {
-            printf("Produit non trouvé.\n");
+            printf("Produit non trouve.\n");
         }
         fclose(fichier);
     } else {
@@ -73,24 +126,24 @@ void modifierProduit(int codeModif) {
         int modifie = 0;
         while (fscanf(fichier, "%d %[^ ] %f %f %d %s\n", &produit.code, produit.designation, &produit.prixAchat, &produit.prixVente, &produit.quantiteStock, produit.derniereDateApprovisionnement) != EOF) {
             if (produit.code == codeModif) {
-                printf("Entrez la nouvelle désignation du produit : ");
+                printf("Entrez la nouvelle designation du produit : ");
                 scanf(" %[^\n]s", produit.designation);
                 printf("Entrez le nouveau prix d'achat du produit : ");
                 scanf("%f", &produit.prixAchat);
                 printf("Entrez le nouveau prix de vente du produit : ");
                 scanf("%f", &produit.prixVente);
-                printf("Entrez la nouvelle quantité en stock du produit : ");
+                printf("Entrez la nouvelle quantite en stock du produit : ");
                 scanf("%d", &produit.quantiteStock);
-                printf("Entrez la nouvelle dernière date d'approvisionnement du produit : ");
+                printf("Entrez la nouvelle derniere date d'approvisionnement du produit : ");
                 scanf(" %s", produit.derniereDateApprovisionnement);
                 modifie = 1;
             }
             fprintf(temp, "%d %s %.2f %.2f %d %s\n", produit.code, produit.designation, produit.prixAchat, produit.prixVente, produit.quantiteStock, produit.derniereDateApprovisionnement);
         }
         if (!modifie) {
-            printf("Produit non trouvé.\n");
+            printf("Produit non trouve.\n");
         } else {
-            printf("Le produit a été modifié avec succès.\n");
+            printf("Le produit a ete modifie avec succes.\n");
         }
         fclose(fichier);
         fclose(temp);
@@ -105,14 +158,10 @@ int main() {
     int choix;
     int codeModif;
     int nombreProduits = 0;
-    int codeRecherche;
+    int codeRecherche,nouveauClient;
     struct Produit nouveauProduit;
     do {
-    printf("Bienvenue dans le gestionnaire de produits.\n");
-    printf("1. Ajouter un nouveau produit\n");
-    printf("2. Rechercher un produit\n");
-    printf("3. Modifier un produit\n");
-    printf("4. Quitter\n");
+    MENU_PRINCIPALE;
     printf("Choisissez une option : ");
     scanf("%d", &choix);
 
@@ -122,22 +171,22 @@ int main() {
           // Ajouter un nouveau produit
     printf("Entrez le code du produit : ");
     scanf("%d", &nouveauProduit.code);
-    printf("Entrez la désignation du produit : ");
+    printf("Entrez la designation du produit : ");
     scanf(" %[^\n]s", nouveauProduit.designation);
     printf("Entrez le prix d'achat du produit : ");
     scanf("%f", &nouveauProduit.prixAchat);
     printf("Entrez le prix de vente du produit : ");
     scanf("%f", &nouveauProduit.prixVente);
-    printf("Entrez la quantité en stock du produit : ");
+    printf("Entrez la quantite en stock du produit : ");
     scanf("%d", &nouveauProduit.quantiteStock);
-    printf("Entrez la dernière date d'approvisionnement du produit : ");
+    printf("Entrez la derniere date d'approvisionnement du produit : ");
     scanf(" %s", nouveauProduit.derniereDateApprovisionnement);
     enregistrerProduit(&nouveauProduit);
     break;
         case 2:
             // Rechercher un produit
 
-    printf("Entrez le code du produit à rechercher : ");
+    printf("Entrez le code du produit a rechercher : ");
     scanf("%d", &codeRecherche);
     rechercherProduit(codeRecherche);
     break;
@@ -145,17 +194,24 @@ int main() {
         case 3:
             // Modifier un produit
 
-            printf("Entrez le code du produit à modifier : ");
+            printf("Entrez le code du produit a modifier : ");
             scanf("%d", &codeModif);
             modifierProduit(codeModif);
             break;
         case 4:
+             //ajouter un client
+            printf("Ajouter un client\n");
+            saisirClient(&nouveauClient);
+            enregistrerClient(&nouveauClient);
+            break;
+        case 5:
             printf("Au revoir !\n");
             break;
+
         default:
             printf("Choix invalide.\n");
     }
- } while (choix != 4);
+ } while (choix != 5);
     return 0;
 }
 

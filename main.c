@@ -266,6 +266,26 @@ void enregistrerCommande(const struct Commande *nouvelleCommande) {
         printf("Erreur lors de l'ouverture du fichier de commandes.\n");
     }
 }
+void afficherProduitEnZoneRouge(){
+    FILE *fichier;
+    fichier = fopen("produit.txt", "r");
+
+    if(fichier !=NULL){
+        struct Produit produit;
+        printf("produit en zone rouge (quantite <10) :\n");
+        while(fscanf(fichier, "%d %[^ ] %f %f %d %s\n", &produit.code, &produit.designation, &produit.prixAchat, &produit.prixVente, &produit.quantiteStock, &produit.derniereDateApprovisionnement) !=EOF){;
+        if(produit.quantiteStock < 10){
+            printf("\033[1;31m");
+            printf("code: %d, designation: %s, prix de vente: %.2f, quantite en stocke: %d\n", produit.code, produit.designation, produit.prixVente, produit.quantiteStock);
+            printf("\033[0m");//remet la couleur par defaut
+        }
+    }
+       fclose(fichier);
+
+    }
+}
+
+
 
 int main() {
     int choix,codeModif,codeRecherche,nouveauClient,n,produit;
@@ -325,14 +345,19 @@ int main() {
             enregistrerClient(&nouveauClient);
             break;
         case 5:
-            printf("Au revoir !\n");
+            //afficher les produits en zone rouge
+            system("cls");
+            afficherProduitEnZoneRouge();
             break;
+        case 6:
+             printf("Au revoir !\n");
+             break;
 
         default:
             system("cls");
             printf("Choix invalide.\n");
     }
- } while (choix != 5);
+ } while (choix != 6);
     }
     if(n == 2){
         ACCUEIL;

@@ -233,6 +233,7 @@ void passerCommande() {
             }
 
             enregistrerCommande(&nouvelleCommande);
+            creerFacture(nouvelleCommande.numero, nouvelleCommande.produits, nouvelleCommande.nbProduits);
         }
     } else {
         saisirClient(&nouveauClient);
@@ -272,10 +273,10 @@ void enregistrerCommande(const struct Commande *nouvelleCommande) {
 
     // Incrémentation du numéro de commande pour la prochaine commande
     numero_commande_actuel++;
-
     // Fermeture du fichier
     fclose(fichier);
 }
+
 
 void afficherProduitEnZoneRouge(){
     FILE *fichier;
@@ -295,11 +296,65 @@ void afficherProduitEnZoneRouge(){
 
     }
 }
+struct Facture {
+    int numeroFacture;
+    int numeroCommande;
+    float montantTotal;
+    float montantVerse;
+    char statut[20]; // "EN COURS" ou "REGLE"
+};
+// Fonction pour créer une facture à partir d'une commande
+void creerFacture(int numeroCommande, struct Produit *listeProduits, int nombreProduits) {
+    // Calcul du montant total de la facture en fonction de la liste des produits dans la commande
+    float montantTotal = 0.0;
+    int i;
+    for (i = 0; i < nombreProduits; i++) {
+        montantTotal += listeProduits[i].prixVente;
+    }
+
+    // Génération aléatoire du numéro de facture
+    int numeroFacture = rand(); // Utilisation de la fonction rand() pour générer un nombre aléatoire
+
+    // Création de la facture
+    struct Facture nouvelleFacture;
+    nouvelleFacture.numeroFacture = numeroFacture;
+    nouvelleFacture.numeroCommande = numeroCommande;
+    nouvelleFacture.montantTotal = montantTotal;
+    nouvelleFacture.montantVerse = 0.0;
+    strcpy(nouvelleFacture.statut, "EN COURS");
 
 
+    // Enregistrer la nouvelle facture dans un fichier ou une structure de données appropriée
+    enregistrerFactureDansFichier(&nouvelleFacture);
+
+    // Autres actions liées à la création de la facture (mise à jour de la commande, etc.)
+    // ...
+}
+void enregistrerFactureDansFichier(struct Facture *nouvelleFacture) {
+    FILE *fichierFactures;
+    fichierFactures = fopen("facture.txt", "a"); // Ouvre le fichier en mode ajout (append)
+
+    if (fichierFactures != NULL) { // Vérifie si le fichier a été ouvert avec succès
+        // Écriture de la nouvelle facture dans le fichier
+        fprintf(fichierFactures, "%d %d %.2f %.2f %s\n", nouvelleFacture->numeroFacture, nouvelleFacture->numeroCommande, nouvelleFacture->montantTotal, nouvelleFacture->montantVerse, nouvelleFacture->statut);
+
+        fclose(fichierFactures); // Ferme le fichier après utilisation
+    } else {
+        printf("Erreur : Impossible d'ouvrir le fichier facture.txt\n");
+    }
+}
+
+void afficherStatutFacture(struct Facture facture) {
+    if (facture.montantTotal == facture.montantVerse) {
+        strcpy(facture.statut, "REGLE");
+    }
+
+    printf("Facture numéro : %d\n", facture.numeroFacture);
+    printf("Statut : %s\n", facture.statut);
+}
 
 int main() {
-    int choix,codeModif,codeRecherche,nouveauClient,n,produit;
+    int choix,choix2,codeModif,codeRecherche,nouveauClient,n,produit;
     int nombreProduits = 0;
     struct Produit nouveauProduit;
     printf("1- Proprietaire\n");
@@ -371,21 +426,32 @@ int main() {
  } while (choix != 6);
     }
     if(n == 2){
+    do{
         ACCUEIL;
-        int choix2;
         printf("Choix: ");
         scanf("%d",&choix2);
         system("cls");
-        if(choix2 == 2){
-            afficherProduits();
+        switch(choix2){
+        case 1:
+        passerCommande();
+        break;
+        system("cls");
+        case 2:
+        afficherProduits();
+        break;
+        system("cls");
+        case 3:
+            printf("Au revoir !\n");
+            MENU_PRINCIPALE;
+            break;
+
+        default:
+            system("cls");
+            printf("Choix invalide");
         }
-        if(choix2 == 1){
-            passerCommande();
-            //saisirCommande();
-        }
-    }
+    }while (choix2!= 3);
     return 0;
 }
-
+}
 
 

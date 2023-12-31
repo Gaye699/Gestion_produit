@@ -334,6 +334,7 @@ void passerCommande() {
 
             enregistrerCommande(&nouvelleCommande);
             creerFacture(&nouvelleCommande, nouvelleCommande.produits, nouvelleCommande.nbProduits);
+            creerFacture(nouvelleCommande.numero, nouvelleCommande.produits, nouvelleCommande.nbProduits);
         }
     } else {
         saisirClient(&nouveauClient);
@@ -427,13 +428,11 @@ void creerFacture(const struct Commande *commande, struct Produit *listeProduits
     // Enregistrer la nouvelle facture dans un fichier ou une structure de données appropriée
     enregistrerFactureDansFichier(&nouvelleFacture);
 }
-void enregistrerFactureDansFichier(struct Facture *nouvelleFacture)
-{
+void enregistrerFactureDansFichier(struct Facture *nouvelleFacture) {
     FILE *fichier;
     fichier = fopen("facture.txt", "a"); // Ouvre le fichier en mode ajout (append)
 
-    if (fichier == NULL)
-    {
+    if (fichier == NULL) {
         printf("Erreur lors de l'ouverture du fichier.\n");
         return;
     }
@@ -456,10 +455,8 @@ void afficherStatutFacture(struct Facture facture)
     {
         strcpy(facture.statut, "REGLE");
     }
-
-    printf("Facture numéro : %d\n", facture.numeroFacture);
-    printf("Statut : %s\n", facture.statut);
 }
+
 
 int main()
 {
@@ -531,7 +528,6 @@ int main()
                 break;
             case 6:
                 printf("Au revoir !\n");
-                system("cls");
                 break;
 
             default:
@@ -540,42 +536,40 @@ int main()
             }
         }
         while (choix != 6);
+        system("cls");
     }
     if(n == 2)
     {
-        do
-        {
-            ACCUEIL;
-            printf("Choix: ");
-            scanf("%d",&choix2);
+        do{
+        ACCUEIL;
+        printf("Choix: ");
+        scanf("%d",&choix2);
+        system("cls");
+        switch(choix2){
+        case 1:
+            passerCommande();
+            break;
+        case 2:
+            afficherListeProduits();
+            break;
             system("cls");
-            switch(choix2)
-            {
-            case 1:
-                passerCommande();
-                system("cls");
-                break;
-
-            case 2:
-                afficherListeProduits();
-                break;
-                system("cls");
-            case 3:
-                printf("Au revoir !\n");
-                MENU_PRINCIPALE;
-                system("cls");
-                break;
-
-            default:
-                system("cls");
-                printf("Choix invalide");
-            }
+        case 3:
+            printf("Au revoir !\n");
+             MENU_PRINCIPALE;
+             system("cls");
+            break;
+        default:
+            system("cls");
+            printf("Choix invalide");
         }
-        while (choix2 != 3);
+      }while(choix2 != 3);
+      system("cls");
     }
-    }while(n != 3);
-    printf("Merci pour votre visite");
+}while(n != 3);
+system("cls");
+printf("Au revoir et a la prochaine");
     return 0;
 }
+
 
 

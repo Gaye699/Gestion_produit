@@ -14,9 +14,12 @@ struct Produit {
 struct Client {
     char nom[50];
     char email[50];
-    int tel[15];
+    int tel;
     char profession[50];
     int pointsFidelite;
+    char adresse[100];
+
+
 };
 void saisirClient(struct Client *nouveauClient) {
     printf("Entrez le nom du client : ");
@@ -24,7 +27,7 @@ void saisirClient(struct Client *nouveauClient) {
     printf("Entrez l'email du client : ");
     scanf(" %s", nouveauClient->email);
     printf("Entrez le tel du client: ");
-    scanf(" %d", nouveauClient->tel);
+    scanf(" %d", &nouveauClient->tel);
     printf("Entrez la profession du client: ");
     scanf(" %s", nouveauClient->profession);
 }
@@ -199,73 +202,81 @@ int verifierDesignationExiste(const char *designationSaisie) {
 void passerCommande() {
     struct Client nouveauClient;
     struct Commande nouvelleCommande;
-    static int dernierNumeroCommande = 0;
 
     printf("Saisir votre nom : ");
     scanf("%s", nouveauClient.nom);
-    //printf("Saisir votre l'email : ");
-    //scanf("%s", nouveauClient.email);
     printf("Saisir votre numero de telephone: ");
     scanf("%d", &nouveauClient.tel);
-    //printf("Saisir votre profession: ");
-    //scanf("%s", nouveauClient.profession);
 
     int clientExiste = validerClient(nouveauClient.nom);
-    //int clientExiste = enregistrerClient(nouvelleCommande->client);
 
     if (clientExiste) {
-        // Le client est déjà enregistré, procéder à la saisie de la commande
-        printf("Client deja enregistre. Saisir les details de la commande...\n");
-        // ... (Code pour saisir et enregistrer la commande)
-        int nbQ;
+        printf("Client déjà enregistré. Saisir les détails de la commande...\n");
+
         char produit[30];
         printf("Entrer le nom du produit: ");
-        scanf("%s",produit);
-        if (verifierDesignationExiste(produit)){
-             nouvelleCommande.numero = ++dernierNumeroCommande;
-    nouvelleCommande.client = nouveauClient;  // Utilisation du client associé à la commande
-    // Saisie de la quantité de produits commandée
-    printf("Entrez le nombre de produits commandés : ");
-    scanf("%d", &nouvelleCommande.nbProduits);
-    // Remplissage des détails de chaque produit commandé
-    int i;
-    for (i = 0; i < nouvelleCommande.nbProduits; i++) {
-        printf("Entrez le code du produit %d : ", i+1);
-        scanf("%d", &nouvelleCommande.produits[i].code);
-        printf("Entrez la quantité du produit %d : \n", i+1);
-        scanf("%d", &nouvelleCommande.produits[i].quantiteStock);
-        // Vous pouvez également saisir d'autres détails tels que le prix d'achat, le prix de vente, la dernière date d'approvisionnement, etc.
-    }
-    enregistrerCommande(&nouvelleCommande); // Appel de la fonction pour enregistrer la commande
-    }
-    }else{
-        // Enregistrer le nouveau client
+        scanf("%s", produit);
+
+        if (verifierDesignationExiste(produit)) {
+            nouvelleCommande.client = nouveauClient;
+            printf("Entrez le nombre de produits commandés : ");
+            scanf("%d", &nouvelleCommande.nbProduits);
+            int i;
+            for (i = 0; i < nouvelleCommande.nbProduits; i++) {
+
+                printf("Entrez le code du produit %d : ", i + 1);
+                scanf("%d", &nouvelleCommande.produits[i].code);
+                printf("Entrez la désignation du produit %d : ", i + 1);
+                scanf("%s", nouvelleCommande.produits[i].designation);
+                printf("Entrez la quantité du produit %d : ", i + 1);
+                scanf("%d", &nouvelleCommande.produits[i].quantiteStock);
+            }
+
+            enregistrerCommande(&nouvelleCommande);
+        }
+    } else {
         saisirClient(&nouveauClient);
+        // Vous pouvez ajouter ici la saisie des autres informations du client
         enregistrerClient(&nouveauClient);
-        // Procéder à la saisie de la commande
+
         printf("Saisir les détails de la commande...\n");
         // ... (Code pour saisir et enregistrer la commande)
     }
-
 }
 
+static int numero_commande_actuel = 1;
+
+// Fonction pour enregistrer une commande dans le fichier commande.txt
 void enregistrerCommande(const struct Commande *nouvelleCommande) {
-    FILE *fichier;
-    fichier = fopen("commandes.txt", "a");
-    if (fichier != NULL) {
-            int dernierNumeroCommande = 0;
-        fprintf(fichier, "-Numero de commande : %d\nClient : %s\n", ++dernierNumeroCommande, nouvelleCommande->client.nom);
-        fprintf(fichier, "Nombre de produits : %d\n", nouvelleCommande->nbProduits);
-        int i;
-        for (i = 0; i < nouvelleCommande->nbProduits; i++) {
-            fprintf(fichier, "Produit %d : %s, Quantite : %d\n", i+1, nouvelleCommande->produits[i].designation, nouvelleCommande->produits[i].quantiteStock);
-        }
-        fclose(fichier);
-        printf("La commande a ete enregistree avec succes.\n");
-    } else {
-        printf("Erreur lors de l'ouverture du fichier de commandes.\n");
+    // Ouverture du fichier en mode ajout (append)
+    FILE *fichier = fopen("commande.txt", "a");
+
+    // Vérification si le fichier a pu être ouvert
+    if (fichier == NULL) {
+        printf("Erreur lors de l'ouverture du fichier.\n");
+        return;
     }
+
+    // Écriture des informations de la commande dans le fichier
+    fprintf(fichier, "Numéro de commande : %d\n", numero_commande_actuel);
+    fprintf(fichier, "Client : %s, Téléphone : %d\n", nouvelleCommande->client.nom, nouvelleCommande->client.tel);
+    fprintf(fichier, "Nombre de produits commandés : %d\n", nouvelleCommande->nbProduits);
+    int i;
+    for (i = 0; i < nouvelleCommande->nbProduits; i++) {
+        fprintf(fichier, "Produit %d : Code : %d, Désignation : %s, Quantité : %d\n", i + 1,
+                nouvelleCommande->produits[i].code, nouvelleCommande->produits[i].designation,
+                nouvelleCommande->produits[i].quantiteStock);
+    }
+
+    fprintf(fichier, "\n");  // Ajout d'une ligne vide pour séparer les commandes
+
+    // Incrémentation du numéro de commande pour la prochaine commande
+    numero_commande_actuel++;
+
+    // Fermeture du fichier
+    fclose(fichier);
 }
+
 void afficherProduitEnZoneRouge(){
     FILE *fichier;
     fichier = fopen("produit.txt", "r");

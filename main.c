@@ -455,25 +455,22 @@ void afficherStatutFacture() {
     float montantTotal, montantVerse;
     char ligne[100];
 
-    int isStartOfNewFacture = 0;
-
     while (fgets(ligne, sizeof(ligne), fichier) != NULL) {
         if (sscanf(ligne, "Numéro de facture : %d", &numeroFacture) == 1) {
-            isStartOfNewFacture = 1;
             printf("Numero de facture : %d\n", numeroFacture);
-        } else if (isStartOfNewFacture && sscanf(ligne, "Statut : %s", statut) == 1) {
+        } else if (sscanf(ligne, "Statut : %[^\n]", statut) == 1) {
             printf("Statut de la facture : %s\n", statut);
-        } else if (isStartOfNewFacture && sscanf(ligne, "Montant total : %f", &montantTotal) == 1) {
+        } else if (sscanf(ligne, "Montant total : %f", &montantTotal) == 1) {
             printf("Montant total : %.2f\n", montantTotal);
-        } else if (isStartOfNewFacture && sscanf(ligne, "Montant versé : %f", &montantVerse) == 1) {
+        } else if (sscanf(ligne, "Montant versé : %f", &montantVerse) == 1) {
             printf("Montant versé : %.2f\n", montantVerse);
             printf("\n");
-            isStartOfNewFacture = 0;
         }
     }
 
     fclose(fichier);
 }
+
 void recompenserClient(struct Client *client, float montantFacture) {
     int points = 0;
 
@@ -485,9 +482,35 @@ void recompenserClient(struct Client *client, float montantFacture) {
 
     client->pointsFidelite += points;
 }
+void supprimerProduit(int codeSuppression) {
+    FILE *fichier;
+    FILE *temp;
+    fichier = fopen("produit.txt", "r");
+    temp = fopen("temp.txt", "w");
+
+    if (fichier != NULL && temp != NULL) {
+        struct Produit produit;
+
+        while (fscanf(fichier, "%d %[^ ] %f %f %d %s\n", &produit.code, produit.designation, &produit.prixAchat, &produit.prixVente, &produit.quantiteStock, produit.derniereDateApprovisionnement) != EOF) {
+            if (produit.code != codeSuppression) {
+                fprintf(temp, "%d %s %.2f %.2f %d %s\n", produit.code, produit.designation, produit.prixAchat, produit.prixVente, produit.quantiteStock, produit.derniereDateApprovisionnement);
+            }
+        }
+
+        fclose(fichier);
+        fclose(temp);
+
+        remove("produit.txt");
+        rename("temp.txt", "produit.txt");
+        printf("Le produit a ete supprime avec succes.\n");
+    } else {
+        printf("Erreur lors de l'ouverture des fichiers.\n");
+    }
+}
+
 int main()
 {
-    int choix,choix2,codeModif,codeRecherche,nouveauClient,n,produit,uneFacture;
+    int choix,choix2,codeModif,codeAsupprimer,codeRecherche,nouveauClient,n,produit,uneFacture;
     int nombreProduits = 0;
     struct Produit nouveauProduit;
     do{
@@ -507,7 +530,7 @@ int main()
 
             switch (choix)
             {
-            case 1:
+             case 1:
                 // Ajouter un nouveau produit
                 // Ajouter un nouveau produit
                 printf("Entrez le code du produit : ");
@@ -536,7 +559,6 @@ int main()
 
             case 3:
                 // Modifier un produit
-
                 printf("Entrez le code du produit a modifier : ");
                 scanf("%d", &codeModif);
                 modifierProduit(codeModif);
@@ -556,13 +578,16 @@ int main()
             case 6:
                 //afficher status factures
                 system("cls");
-                afficherStatutFacture(&uneFacture);
+                afficherStatutFacture();
                 break;
             case 7:
-                printf("Au revoir !\n");
+                system("cls");
+                printf("Entrer le code du produit a supprimer: ");
+                scanf("%d",&codeAsupprimer);
+                supprimerProduit(codeAsupprimer);
                 break;
             case 8:
-
+                printf("Au revoir !\n");
                 break;
 
             default:

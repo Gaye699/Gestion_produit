@@ -491,7 +491,7 @@ void supprimerProduit(int codeSuppression) {
     if (fichier != NULL && temp != NULL) {
         struct Produit produit;
 
-        while (fscanf(fichier, "%d %[^ ] %f %f %d %s\n", &produit.code, produit.designation, &produit.prixAchat, &produit.prixVente, &produit.quantiteStock, produit.derniereDateApprovisionnement) != EOF) {
+        while (fscanf(fichier, "%d %s %.2f %.2f %d %s\n", &produit.code, produit.designation, &produit.prixAchat, &produit.prixVente, &produit.quantiteStock, produit.derniereDateApprovisionnement) != EOF) {
             if (produit.code != codeSuppression) {
                 fprintf(temp, "%d %s %.2f %.2f %d %s\n", produit.code, produit.designation, produit.prixAchat, produit.prixVente, produit.quantiteStock, produit.derniereDateApprovisionnement);
             }
@@ -507,10 +507,41 @@ void supprimerProduit(int codeSuppression) {
         printf("Erreur lors de l'ouverture des fichiers.\n");
     }
 }
+void supprimerClient(const char *nomClientASupprimer, int telClientASupprimer) {
+    FILE *fichierLecture, *fichierEcriture;
+    fichierLecture = fopen("client.txt", "r");
+    fichierEcriture = fopen("temp.txt", "w");
+
+    if (fichierLecture == NULL || fichierEcriture == NULL) {
+        printf("Erreur lors de l'ouverture des fichiers.\n");
+        return;
+    }
+
+    char ligne[200]; // Supposons que chaque ligne contient au maximum 200 caractères
+
+    while (fgets(ligne, sizeof(ligne), fichierLecture)) {
+        char nom[50], email[50];
+        int tel;
+        sscanf(ligne, "%s %s %d", nom, email, &tel);
+
+        if (strcmp(nom, nomClientASupprimer) != 0 || tel != telClientASupprimer) {
+            fputs(ligne, fichierEcriture);
+        }
+    }
+
+    fclose(fichierLecture);
+    fclose(fichierEcriture);
+
+    remove("client.txt"); // Supprimer l'ancien fichier client
+    rename("temp.txt", "client.txt"); // Renommer le fichier temporaire en client.txt
+    printf("Le client a ete supprime avec succès.\n");
+}
+
 
 int main()
 {
-    int choix,choix2,codeModif,codeAsupprimer,codeRecherche,nouveauClient,n,produit,uneFacture;
+    int choix,choix2,codeModif,codeAsupprimer,codeRecherche,nouveauClient,telClientASupprimer,n,produit,uneFacture;
+    char nomClientASupprimer[50];
     int nombreProduits = 0;
     struct Produit nouveauProduit;
     do{
@@ -587,6 +618,15 @@ int main()
                 supprimerProduit(codeAsupprimer);
                 break;
             case 8:
+                system("cls");
+                printf("Entrez le nom du client a supprimer : ");
+                scanf("%s", nomClientASupprimer);
+                printf("Entrez le numero de telephone du client a supprimer : ");
+                scanf("%d", &telClientASupprimer);
+                supprimerClient(nomClientASupprimer, telClientASupprimer);
+                break;
+            case 9:
+
                 printf("Au revoir !\n");
                 break;
 
@@ -595,7 +635,7 @@ int main()
                 printf("Choix invalide.\n");
             }
         }
-        while (choix != 8);
+        while (choix != 9);
         system("cls");
     }
     if(n == 2)

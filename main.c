@@ -1,8 +1,16 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>  // Pour rand() et srand()
+#include <time.h>
 #include "const.h"
-
-
+struct Client {
+    char nom[50];
+    char email[50];
+    int tel;
+    char profession[50];
+    int pointsFidelite;
+    struct Client *suivant;
+};
 struct Produit
 {
     int code;
@@ -12,16 +20,21 @@ struct Produit
     int quantiteStock;
     char derniereDateApprovisionnement[20];
 };
-struct Client
+struct Commande
 {
-    char nom[50];
-    char email[50];
-    int tel;
-    char profession[50];
-    int pointsFidelite;
-    char adresse[100];
-
-
+    int numero;
+    struct Client client;
+    struct Produit produits[10];  // Supposons que MAX_PRODUITS est le nombre maximum de produits par commande
+    int nbProduits;
+    char statut[20];
+};
+struct Facture
+{
+    int numeroFacture;
+    int numeroCommande; // Ajout du numéro de commande dans la facture
+    float montantTotal;
+    float montantVerse;
+    char statut[20]; // "EN COURS" ou "REGLE"
 };
 void saisirClient(struct Client *nouveauClient)
 {
@@ -197,13 +210,6 @@ void modifierProduit(int codeModif)
         printf("Erreur lors de l'ouverture des fichiers.\n");
     }
 }
-struct Commande
-{
-    int numero;
-    struct Client client;
-    struct Produit produits[10];  // Supposons que MAX_PRODUITS est le nombre maximum de produits par commande
-    int nbProduits;
-};
 int validerClient(char *nomClient)
 {
     FILE *fichier = fopen("client.txt", "r");
@@ -250,55 +256,21 @@ int verifierDesignationExiste(const char *designationSaisie)
     }
     return existe;
 }
-/*static int dernierNumeroCommande = 1;  // Initialisation du compteur de commande
-static int dernierNumeroFacture = 1000;  // Initialisation du compteur de facture
-
-// Sauvegarder le dernier numéro de commande dans un fichier
-void sauvegarderDernierNumeroCommande() {
-    FILE *fichier = fopen("dernier_numero_commande.txt", "w");
-    if (fichier != NULL) {
-        if (fprintf(fichier, "%d", dernierNumeroCommande) < 0) {
-            printf("Erreur lors de l'écriture du dernier numéro de commande dans le fichier.\n");
-        }
-        if (fclose(fichier) == EOF) {
-            printf("Erreur lors de la fermeture du fichier.\n");
-        }
-    } else {
-        printf("Impossible d'ouvrir le fichier pour sauvegarder le dernier numéro de commande.\n");
-    }
+int genererNumeroFacture() {
+    srand(time(0));  // Initialisation du générateur de nombres aléatoires avec une graine différente à chaque exécution
+    return rand() % 10000;  // Numéro de facture aléatoire entre 0 et 9999
 }
-
-// Charger le dernier numéro de commande à partir du fichier
-void chargerDernierNumeroCommande() {
-    FILE *fichier = fopen("dernier_numero_commande.txt", "r");
-    if (fichier != NULL) {
-        if (fscanf(fichier, "%d", &dernierNumeroCommande) == 1) {
-            if (fclose(fichier) == EOF) {
-                printf("Erreur lors de la fermeture du fichier.\n");
-            }
-        } else {
-            printf("Erreur lors de la lecture du dernier numéro de commande depuis le fichier.\n");
-            dernierNumeroCommande = 1;  // Réinitialisation du numéro de commande par défaut en cas d'erreur
-        }
-    } else {
-        printf("Impossible d'ouvrir le fichier pour charger le dernier numéro de commande.\n");
-    }
-}
-
-// Modifier la fonction genererNouveauNumeroCommande pour sauvegarder le numéro après l'avoir incrémenté
-int genererNouveauNumeroCommande() {
-    int nouveauNumero = dernierNumeroCommande++;
-    sauvegarderDernierNumeroCommande();  // Sauvegarder le nouveau numéro dans le fichier
-    return nouveauNumero;
-}   */
-
 // Fonction pour passer une commande
 void passerCommande() {
     struct Client nouveauClient;
     struct Commande nouvelleCommande;
 
+    int dernierNumeroCommande = recupererDernierNumeroCommande();
+    nouvelleCommande.numero = ++dernierNumeroCommande;  // Incrément du numéro de commande
+
     printf("Saisir votre nom : ");
     scanf("%s", nouveauClient.nom);
+
     printf("Saisir votre numero de telephone: ");
     scanf("%d", &nouveauClient.tel);
 
@@ -315,6 +287,7 @@ void passerCommande() {
             nouvelleCommande.client = nouveauClient;
             printf("Entrez le nombre de produits commandés : ");
             scanf("%d", &nouvelleCommande.nbProduits);
+
             // Initialisation des produits
             int i;
             for (i = 0; i < nouvelleCommande.nbProduits; i++) {
@@ -322,54 +295,96 @@ void passerCommande() {
                 strcpy(nouvelleCommande.produits[i].designation, "");  // Chaîne vide par défaut
                 nouvelleCommande.produits[i].quantiteStock = 0;  // Valeur par défaut
             }
-            // Saisie des détails de chaque produit
-            for (i = 0; i < nouvelleCommande.nbProduits; i++) {
-                printf("Entrez le code du produit %d : ", i + 1);
-                scanf("%d", &nouvelleCommande.produits[i].code);
-                printf("Entrez la désignation du produit %d : ", i + 1);
-                scanf("%s", nouvelleCommande.produits[i].designation);
-                printf("Entrez la quantité du produit %d : ", i + 1);
-                scanf("%d", &nouvelleCommande.produits[i].quantiteStock);
-            }
 
-            enregistrerCommande(&nouvelleCommande);
-            creerFacture(&nouvelleCommande, nouvelleCommande.produits, nouvelleCommande.nbProduits);
-            creerFacture(nouvelleCommande.numero, nouvelleCommande.produits, nouvelleCommande.nbProduits);
+            // Saisie des détails de chaque produit
+            float montantTotal = 0.0;
+    for (i = 0; i < nouvelleCommande.nbProduits; i++) {
+        printf("Entrez le code du produit %d : ", i + 1);
+        scanf("%d", &nouvelleCommande.produits[i].code);
+        printf("Entrez la désignation du produit %d : ", i + 1);
+        scanf("%s", nouvelleCommande.produits[i].designation);
+        printf("Entrez la quantité du produit %d : ", i + 1);
+        scanf("%d", &nouvelleCommande.produits[i].quantiteStock);
+
+        // Calcul du montant total
+        montantTotal += nouvelleCommande.produits[i].prixVente * nouvelleCommande.produits[i].quantiteStock;
+    }
+
+    // Demander à l'utilisateur le montant qu'il souhaite verser
+    float montantVerse;
+    printf("Entrez le montant que vous souhaitez verser : ");
+    scanf("%f", &montantVerse);
+
+    // Création de la facture et définition du statut en fonction du montant versé
+    struct Facture nouvelleFacture;
+    nouvelleFacture.numeroFacture = ++dernierNumeroCommande;
+    nouvelleFacture.numeroCommande = nouvelleCommande.numero;
+    nouvelleFacture.montantTotal = montantTotal;
+    nouvelleFacture.montantVerse = montantVerse;
+
+    if (montantVerse < montantTotal) {
+        strcpy(nouvelleFacture.statut, "EN COURS"); // Si le montant est inférieur au total, statut en cours
+    } else if (montantVerse == montantTotal || montantVerse > montantTotal) {
+        strcpy(nouvelleFacture.statut, "REGLE"); // Si le montant est égal au total, statut réglé
+    }
+
+    // Enregistrement de la commande et de la facture
+    enregistrerCommande(&nouvelleCommande);
+    creerFacture(&nouvelleFacture);
+    sauvegarderDernierNumeroCommande(dernierNumeroCommande);
+    recompenserClient(&nouveauClient, montantTotal);
+            system("cls");
         }
     } else {
+        system("cls");
+        printf("Vous devez d'abord vous enregistrer !\n");
         saisirClient(&nouveauClient);
         enregistrerClient(&nouveauClient);
+        system("cls");
 
-        printf("Saisir les détails de la commande...\n");
-        // ... (Code pour saisir et enregistrer la commande)
     }
 }
-//static int numero_commande_actuel = 1;
+int recupererDernierNumeroCommande() {
+    int dernierNumero = 0;
+    FILE *fichier = fopen("dernier_numero_commande.txt", "r");
+    if (fichier != NULL) {
+        fscanf(fichier, "%d", &dernierNumero);
+        fclose(fichier);
+    }
+    return dernierNumero;
+}
 
-void enregistrerCommande(const struct Commande *nouvelleCommande)
-{
+// Fonction pour sauvegarder le dernier numéro de commande dans un fichier
+void sauvegarderDernierNumeroCommande(int dernierNumero) {
+    FILE *fichier = fopen("dernier_numero_commande.txt", "w");
+    if (fichier != NULL) {
+        fprintf(fichier, "%d", dernierNumero);
+        fclose(fichier);
+    }
+}
+
+void enregistrerCommande(struct Commande *nouvelleCommande) {
+    int dernierNumero = recupererDernierNumeroCommande();
     FILE *fichier;
     fichier = fopen("commandes.txt", "a");
-    if (fichier != NULL)
-    {
-        int dernierNumeroCommande = 0;
-        fprintf(fichier, "Numero de commande : %d\nClient : %s\n", ++dernierNumeroCommande, nouvelleCommande->client.nom);
+
+    if (fichier != NULL) {
+        fprintf(fichier, "Numero de commande : %d\nClient : %s\n", ++dernierNumero, nouvelleCommande->client.nom);
         fprintf(fichier, "Nombre de produits : %d\n", nouvelleCommande->nbProduits);
         int i;
-        for (i = 0; i < nouvelleCommande->nbProduits; i++)
-        {
-            fprintf(fichier, "Produit %d : %s, Quantite : %d\n", i+1, nouvelleCommande->produits[i].designation, nouvelleCommande->produits[i].quantiteStock);
+        for (i = 0; i < nouvelleCommande->nbProduits; i++) {
+            fprintf(fichier, "Produit %d : %s, Quantite : %d\n", i + 1, nouvelleCommande->produits[i].designation, nouvelleCommande->produits[i].quantiteStock);
         }
+
         fprintf(fichier, "\n");
         fclose(fichier);
+
+        sauvegarderDernierNumeroCommande(dernierNumero); // Sauvegarde du nouveau numéro
         printf("La commande a ete enregistree avec succes.\n");
-    }
-    else
-    {
+    } else {
         printf("Erreur lors de l'ouverture du fichier de commandes.\n");
     }
 }
-
 
 void afficherProduitEnZoneRouge()
 {
@@ -394,73 +409,85 @@ void afficherProduitEnZoneRouge()
 
     }
 }
-struct Facture
-{
-    int numeroFacture;
-    struct Commande commande;  // Stocke la commande associée à la facture
-    float montantTotal;
-    float montantVerse;
-    char statut[20]; // "EN COURS" ou "REGLE"
-};
 // Fonction pour créer une facture à partir d'une commande
-void creerFacture(const struct Commande *commande, struct Produit *listeProduits, int nombreProduits)
-{
-    // Calcul du montant total de la facture en fonction de la liste des produits dans la commande
-    float montantTotal = 0.0;
-    int i;
-    for (i = 0; i < nombreProduits; i++)
-    {
-        montantTotal += listeProduits[i].prixVente;
-    }
+void creerFacture(const struct Commande *commande, float montantTotal) {
+    int numeroFacture = genererNumeroFacture();
 
-    // Génération du numéro de facture unique
-    static int dernierNumeroFacture = 1000;  // Initialisation du compteur de facture
-    int numeroFacture = ++dernierNumeroFacture;  // Incrémentation du compteur pour obtenir un nouveau numéro de facture unique
-
-    // Création de la facture
     struct Facture nouvelleFacture;
     nouvelleFacture.numeroFacture = numeroFacture;
-    nouvelleFacture.commande = *commande;  // Stocke la commande associée à la facture
+    nouvelleFacture.numeroCommande = commande->numero; // Utilisation du numéro de la commande
     nouvelleFacture.montantTotal = montantTotal;
     nouvelleFacture.montantVerse = 0.0;
     strcpy(nouvelleFacture.statut, "EN COURS");
 
-    // Enregistrer la nouvelle facture dans un fichier ou une structure de données appropriée
     enregistrerFactureDansFichier(&nouvelleFacture);
 }
+
 void enregistrerFactureDansFichier(struct Facture *nouvelleFacture) {
     FILE *fichier;
-    fichier = fopen("facture.txt", "a"); // Ouvre le fichier en mode ajout (append)
+    fichier = fopen("facture.txt", "a");
 
     if (fichier == NULL) {
         printf("Erreur lors de l'ouverture du fichier.\n");
         return;
     }
 
-    // Écriture des informations de la facture dans le fichier
     fprintf(fichier, "Numéro de facture : %d\n", nouvelleFacture->numeroFacture);
-    fprintf(fichier, "Numéro de commande : %d\n", nouvelleFacture->commande.numero);  // Accès au numéro de commande à partir de la structure <link>Commande</link>
+    fprintf(fichier, "Numéro de commande : %d\n", nouvelleFacture->numeroCommande);
     fprintf(fichier, "Montant total : %.2f\n", nouvelleFacture->montantTotal);
     fprintf(fichier, "Montant versé : %.2f\n", nouvelleFacture->montantVerse);
     fprintf(fichier, "Statut : %s\n", nouvelleFacture->statut);
-    fprintf(fichier, "\n");  // Ajout d'une ligne vide pour séparer les factures
+    fprintf(fichier, "\n");
 
-    // Fermeture du fichier
     fclose(fichier);
 }
+void afficherStatutFacture() {
+    FILE *fichier;
+    fichier = fopen("facture.txt", "r");
 
-void afficherStatutFacture(struct Facture facture)
-{
-    if (facture.montantTotal == facture.montantVerse)
-    {
-        strcpy(facture.statut, "REGLE");
+    if (fichier == NULL) {
+        printf("Erreur lors de l'ouverture du fichier.\n");
+        return;
     }
+
+    int numeroFacture;
+    char statut[20];
+    float montantTotal, montantVerse;
+    char ligne[100];
+
+    int isStartOfNewFacture = 0;
+
+    while (fgets(ligne, sizeof(ligne), fichier) != NULL) {
+        if (sscanf(ligne, "Numéro de facture : %d", &numeroFacture) == 1) {
+            isStartOfNewFacture = 1;
+            printf("Numero de facture : %d\n", numeroFacture);
+        } else if (isStartOfNewFacture && sscanf(ligne, "Statut : %s", statut) == 1) {
+            printf("Statut de la facture : %s\n", statut);
+        } else if (isStartOfNewFacture && sscanf(ligne, "Montant total : %f", &montantTotal) == 1) {
+            printf("Montant total : %.2f\n", montantTotal);
+        } else if (isStartOfNewFacture && sscanf(ligne, "Montant versé : %f", &montantVerse) == 1) {
+            printf("Montant versé : %.2f\n", montantVerse);
+            printf("\n");
+            isStartOfNewFacture = 0;
+        }
+    }
+
+    fclose(fichier);
 }
+void recompenserClient(struct Client *client, float montantFacture) {
+    int points = 0;
 
+    if (montantFacture > 50000 && montantFacture <= 100000) {
+        points = 1;
+    } else if (montantFacture > 100000) {
+        points = 3;
+    }
 
+    client->pointsFidelite += points;
+}
 int main()
 {
-    int choix,choix2,codeModif,codeRecherche,nouveauClient,n,produit;
+    int choix,choix2,codeModif,codeRecherche,nouveauClient,n,produit,uneFacture;
     int nombreProduits = 0;
     struct Produit nouveauProduit;
     do{
@@ -527,7 +554,15 @@ int main()
                 afficherProduitEnZoneRouge();
                 break;
             case 6:
+                //afficher status factures
+                system("cls");
+                afficherStatutFacture(&uneFacture);
+                break;
+            case 7:
                 printf("Au revoir !\n");
+                break;
+            case 8:
+
                 break;
 
             default:
@@ -535,7 +570,7 @@ int main()
                 printf("Choix invalide.\n");
             }
         }
-        while (choix != 6);
+        while (choix != 8);
         system("cls");
     }
     if(n == 2)

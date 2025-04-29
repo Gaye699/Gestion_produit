@@ -5,6 +5,8 @@ Ce projet est une application en langage C conçue pour permettre à un proprié
 ---
 
 ## ✨ Fonctionnalités principales
+![gestionPrd](https://github.com/user-attachments/assets/9ddfe85e-079a-4cec-be1d-007bff85da89)
+
 
 ### 🔹 Gestion des Produits
 - Ajouter un nouveau produit
@@ -14,12 +16,16 @@ Ce projet est une application en langage C conçue pour permettre à un proprié
 
 ### 🔹 Gestion des Clients
 - Enregistrer un nouveau client
+- ![gestionPrd2](https://github.com/user-attachments/assets/f9647ba2-c3c4-4f66-86ce-a9e48b165f23)
+
 - Supprimer un client
 - Afficher la liste des clients
 - Récompenser un client fidèle (points fidélité)
 
 ### 🔹 Commandes & Factures
 - Passer une commande
+- ![gestionPrd3](https://github.com/user-attachments/assets/60fa4815-817b-4279-bdbe-f98c20b0186e)
+
 - Générer automatiquement une facture
 - Calculer le statut de la facture : `EN COURS` ou `REGLE`
 - Afficher les factures en cours ou réglées

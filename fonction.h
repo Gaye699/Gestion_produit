@@ -1,6 +1,6 @@
 #ifndef FONCTION_H
 #define FONCTION_H
-#include "structure.h" // Inclure les structures nécessaires
+#include "structure.h" // Inclure les structures nÃ©cessaires
 
 void enregistrerProduit(struct Produit *nouveauProduit);
 void saisirClient(struct Client *nouveauClient);
@@ -14,6 +14,8 @@ void modifierProduit(const char *designationModif);
 void rechercherProduitParDesignation(const char *designationRecherche);
 void afficherListeProduits() ;
 void afficherPointsFidelite(const struct Client *client);
+void afficherFacturesRegles();
+void afficherFacturesEnCours();
 void ajouterPointsFidelite(struct Client *client, int nombrePoints);
 int recupererDernierNumeroCommande() ;
 void sauvegarderDernierNumeroCommande(int dernierNumero);

@@ -9,12 +9,13 @@
 
 
 int main(){
-    srand(time(0)); // Initialisation du générateur de nombres aléatoires une seule fois
-    int choix,choix2,nouveauClient,telClientASupprimer,n,produit,uneFacture;
+    srand(time(0)); // Initialisation du gÃ©nÃ©rateur de nombres alÃ©atoires une seule fois
+    int choix,choix2,telClientASupprimer,n,produit,uneFacture;
     int code,mdp = 0000;
     char nomClientASupprimer[50],nomProduit[30],designation[30],designation2[30];
     int nombreProduits = 0;
     struct Produit nouveauProduit;
+    struct Client nouveauClient;
     do{
     printf("1- Proprietaire\n");
     printf("2- Client\n");
@@ -40,8 +41,8 @@ int main(){
              int nouveauMdp;
             printf("Entrez le nouveau mot de passe : ");
             scanf("%d", &nouveauMdp);
-            mdp = nouveauMdp; // Mettre à jour le mot de passe
-            printf("Le mot de passe a été mis à jour avec succès.\n");
+            mdp = nouveauMdp; // Mettre Ã  jour le mot de passe
+            printf("Le mot de passe a Ã©tÃ© mis Ã  jour avec succÃ¨s.\n");
         }else
         if (choixProprietaire == 2){
         system("cls");
@@ -59,6 +60,7 @@ int main(){
              case 1:
                 // Ajouter un nouveau produit
                 // Ajouter un nouveau produit
+                system("cls");
                 printf("Entrez la designation du produit : ");
                 scanf(" %[^\n]s", nouveauProduit.designation);
                 printf("Entrez le prix d'achat du produit : ");
@@ -74,7 +76,7 @@ int main(){
                 break;
             case 2:
                 // Rechercher un produit
-
+                system("cls");
                 printf("Entrez la designation du produit : ");
                 scanf("%s", &nomProduit);
                 system("cls");
